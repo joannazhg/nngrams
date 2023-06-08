@@ -1,88 +1,84 @@
 import sys
 import random
 
-# Copy arr and insert val at position pos
-def insert(arr, pos, val):
-    out = arr.copy()
-    out.insert(pos, val)
-    return out
+# Duplicates array and appends value at specified position
+def add_element(arr, pos, val):
+    output_arr = arr.copy()
+    output_arr.insert(pos, val)
+    return output_arr
 
-# Compute heuristic for the real constraints (solnConst) and artificial matching
-# constraints (curConst)
-def constraintDiff(solnConst, curConst):
-    # recursive algorithm for checking alternative padding strategies
-    def f(curBest, longConst, shortConst):
-        out = 0
-        # add differences to out
-        for i in range(len(shortConst)):
-            out += abs(longConst[i] - shortConst[i])
-        # add remaining unpaired constraints to out
-        for i in range(len(shortConst), len(longConst)):
-            out += abs(longConst[i])
-        out = min(out, curBest)
-        # If they are the same length, that implies we've performed maximum padding
-        return out
-        #if len(shortConst) == len(longConst):
-        #    return out
-        #else:
-        #    # Recurse with padding in every possible location, take minimal result
-        #    return min([f(out, longConst, insert(shortConst, i, 0)) for i in range(len(shortConst))])
-    # check whether the actual or artificial constraints are longer, and call f accordingly
-    if len(solnConst) > len(curConst):
-        return f(sys.maxsize, solnConst, curConst)
+# Computes heuristic difference between actual constraints and artificial matching constraints
+def diff_constraints(actualConstraints, artificialConstraints):
+    
+    # Recursive method for exploring different padding options
+    def alternative_padding(current_best, longer_constraints, shorter_constraints):
+        total = 0
+        # Calculate difference and add to total
+        for i in range(len(shorter_constraints)):
+            total += abs(longer_constraints[i] - shorter_constraints[i])
+        # Add remaining unmatched constraints to total
+        for i in range(len(shorter_constraints), len(longer_constraints)):
+            total += abs(longer_constraints[i])
+        total = min(total, current_best)
+        # If they are of same length, maximum padding has been achieved
+        return total
+
+    # Determines which set of constraints is longer and calls the function 'alternative_padding' accordingly
+    if len(actualConstraints) > len(artificialConstraints):
+        return alternative_padding(sys.maxsize, actualConstraints, artificialConstraints)
     else:
-        return f(sys.maxsize, curConst, solnConst)
+        return alternative_padding(sys.maxsize, artificialConstraints, actualConstraints)
 
-# Calculate heuristic on given parameters (either rows or columns)
-# nonogramSpecDim = one of the dimensions of the nonogram specification
-# attempt = the rows or columns of the nonogram (whichever corresponds to the dim above)
-def genericHeuristic(nonogramSpecDim, attempt):
-    hVal = 0
-    for i in range(len(nonogramSpecDim)):
-        constraints = nonogramSpecDim[i]
-        matchingConstraints = []
-        curConstraint = 0
-        # construct artificial matching constraints
+# Computes heuristic based on provided parameters 
+def calculate_heuristic(nonogram_dimension, attempt):
+    h_value = 0
+    for i in range(len(nonogram_dimension)):
+        constraints = nonogram_dimension[i]
+        matching_constraints = []
+        current_constraint = 0
+        # Constructs matching constraints
         for square in attempt[i]:
             if square:
-                length = len(matchingConstraints)
-                if curConstraint == length:
-                    matchingConstraints.insert(len(matchingConstraints), 1)
+                length = len(matching_constraints)
+                if current_constraint == length:
+                    matching_constraints.insert(len(matching_constraints), 1)
                 else:
-                    matchingConstraints[curConstraint] += 1
+                    matching_constraints[current_constraint] += 1
             else:
-                curConstraint += len(matchingConstraints) - curConstraint
-        hVal += constraintDiff(constraints, matchingConstraints)
-    return hVal
+                current_constraint += len(matching_constraints) - current_constraint
+        h_value += diff_constraints(constraints, matching_constraints)
+    return h_value
 
-# Calculate heuristic on rows
-def rowHeuristic(nonogramSpec, nonogramSoln):
-    return genericHeuristic(nonogramSpec['rows'], nonogramSoln)
+# Computes heuristic on rows
+def heuristic_rows(nonogram_spec, nonogram_sol):
+    return calculate_heuristic(nonogram_spec['rows'], nonogram_sol)
 
-# Create and return a new table, which is the transpose of the input
-def transpose(table):
-    rows = len(table)
-    cols = len(table[0])
-    out = [[False for _ in range(rows)] for _ in range(cols)]
-    for i in range(rows):
-        for j in range(cols):
-            out[j][i] = table[i][j]
-    return out
+# Transposes the input table and returns a new one
+def transposition(table):
+    rows_count = len(table)
+    cols_count = len(table[0])
+    output_table = [[False for _ in range(rows_count)] for _ in range(cols_count)]
+    for i in range(rows_count):
+        for j in range(cols_count):
+            output_table[j][i] = table[i][j]
+    return output_table
 
-# Calculate heuristic on columns
-def colHeuristic(nonogramSpec, nonogramSoln):
-    return genericHeuristic(nonogramSpec['cols'], transpose(nonogramSoln))
+# Computes heuristic on columns
+def heuristic_columns(nonogram_spec, nonogram_sol):
+    return calculate_heuristic(nonogram_spec['cols'], transposition(nonogram_sol))
 
-def additiveHeuristic(nonogramSpec, nonogramSoln):
-    hVal = 0
-    # check heuristic on rows
-    hVal += rowHeuristic(nonogramSpec, nonogramSoln)
-    # check heuristic on columns
-    hVal += colHeuristic(nonogramSpec, nonogramSoln)
-    return hVal
+# Calculates additive heuristic
+def combined_heuristic(nonogram_spec, nonogram_sol):
+    h_value = 0
+    # Checks heuristic on rows
+    h_value += heuristic_rows(nonogram_spec, nonogram_sol)
+    # Checks heuristic on columns
+    h_value += heuristic_columns(nonogram_spec, nonogram_sol)
+    return h_value
 
-def randomHeuristic(nonogramSpec, nonogramSoln):
+# Returns heuristic value either from rows or columns, chosen randomly
+def random_choice_heuristic(nonogram_spec, nonogram_sol):
     if random.choice([False, True]):
-        return rowHeuristic(nonogramSpec, nonogramSoln)
+        return heuristic_rows(nonogram_spec, nonogram_sol)
     else:
-        return colHeuristic(nonogramSpec, nonogramSoln)
+        return heuristic_columns(nonogram_spec, nonogram_sol)
