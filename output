@@ -1,0 +1,75 @@
+import geneticalgorithm
+import puzzle
+import heuristic
+import time
+import importlib
+
+
+def performTests():
+    importlib.reload(heuristic)
+    importlib.reload( geneticalgorithm)
+    importlib.reload(puzzle)
+
+    # Single Solutions
+    def calculateRunTime(runIterations, constraintSet, populationFactor, mutationFactor, maxIterations, heuristicFunction, restartFlag=False):
+
+        startTime = time.time()
+        solution =  geneticalgorithm.solver(
+            constraintSet, populationFactor, mutationFactor, maxIterations, heuristicFunction, restartFlag)
+         geneticalgorithm.printNonogram(solution)
+        endTime = time.time()
+        runDuration = endTime - startTime
+        maxRunTime = runDuration
+        minRunTime = runDuration
+        totalDuration = runDuration
+
+        for i in range(runIterations-1):
+            startTime = time.time()
+            solution =  geneticalgorithm.solver(
+                constraintSet, populationFactor, mutationFactor, maxIterations, heuristicFunction, restartFlag)
+             geneticalgorithm.printNonogram(solution)
+            endTime = time.time()
+            runDuration = endTime - startTime
+            totalDuration += runDuration
+            if(runDuration > maxRunTime):
+                maxRunTime = runDuration
+            else:
+                minRunTime = runDuration
+
+        averageTime = totalDuration / runIterations
+
+        runtimeStats = {}
+        runtimeStats['maxTime'] = maxRunTime
+        runtimeStats['minTime'] = minRunTime
+        runtimeStats['average'] = averageTime
+
+        return runtimeStats
+
+    runIterations = 10
+    populationFactor = 50
+    mutationFactor = 2
+    maxIterations = 100
+    heuristicFunction = heuristic.randomHeuristic
+    restartFlag = True
+
+    runStats1 = calculateRunTime(runIterations, puzzle.samplepuzzle1,
+                                 populationFactor, mutationFactor, maxIterations, heuristicFunction, restartFlag)
+    print(
+        f"For a 5x5 single solution in {runIterations} iterations: \n Maximum runtime is {runStats1['maxTime']} \n Minimum runtime is {runStats1['minTime']} \n Average runtime is {runStats1['average']}")
+
+    populationFactor = 15
+    maxIterations = 10000
+    restartFlag = True
+
+    runStats2 = calculateRunTime(runIterations, puzzle.samplepuzzle2,
+                                 populationFactor, mutationFactor, maxIterations, heuristicFunction, restartFlag)
+    print(
+        f"For a 10x10 single solution in {runIterations} iterations: \n Maximum runtime is {runStats2['maxTime']} \n Minimum runtime is {runStats2['minTime']} \n Average runtime is {runStats2['average']}")
+
+    runStats3 = calculateRunTime(runIterations, puzzle.samplepuzzle3,
+                                 populationFactor, mutationFactor, maxIterations, heuristicFunction, restartFlag)
+    print(
+        f"For a 15x15 single solution in {runIterations} iterations: \n Maximum runtime is {runStats3['maxTime']} \n Minimum runtime is {runStats3['minTime']} \n Average runtime is {runStats3['average']}")
+
+    print(
+        f"Average runtimes are: \n 5x5 - {runStats1['average']} \n 10x10 - {runStats2['average']} \n 15x15 - {runStats3['average']}")
