@@ -1,1 +1,1 @@
-# puzzleAutomation
+# nonogramPuzzleAutomation
