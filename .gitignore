@@ -1,0 +1,21 @@
+# .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.pyz
+*.pyzw
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
