@@ -1,115 +1,80 @@
-import heuristic
 import random
+import heuristic
 
-
-def printNonogram(soln):
-    for row in soln:
+# Display the nonogram solution
+def display_nonogram(solution):
+    for row in solution:
         print("")
         for square in row:
             print("#" if square else ".", end=" ")
     print("\n")
 
+# Crossover method on the columns of the parent nonograms
+def cross_cols(parent1, parent2):
+    cross_point = random.randrange(len(parent1)) or 1
+    offspring1, offspring2 = [], []
+    for i in range(cross_point):
+        offspring1.append([parent1[j][i] for j in range(len(parent1))])
+        offspring2.append([parent2[j][i] for j in range(len(parent1))])
+    for i in range(cross_point, len(parent1)):
+        offspring1.append([parent2[j][i] for j in range(len(parent1))])
+        offspring2.append([parent1[j][i] for j in range(len(parent1))])
+    return heuristic.transpose(offspring1), heuristic.transpose(offspring2)
 
-def crossoverCols(parent1, parent2):
-    crossoverPoint = random.randrange(len(parent1)) or 1
-    child1 = []
-    child2 = []
-    for i in range(crossoverPoint):
-        child1.insert(i, [parent1[j][i] for j in range(len(parent1))])
-        child2.insert(i, [parent2[j][i] for j in range(len(parent1))])
-    for i in range(crossoverPoint, len(parent1)):
-        child1.insert(i, [parent2[j][i] for j in range(len(parent1))])
-        child2.insert(i, [parent1[j][i] for j in range(len(parent1))])
-    return heuristic.transpose(child1), heuristic.transpose(child2)
+# Crossover method on the rows of the parent nonograms
+def cross_rows(parent1, parent2):
+    cross_point = random.randrange(len(parent1)) or 1
+    offspring1, offspring2 = [], []
+    for i in range(cross_point):
+        offspring1.append(parent1[i].copy())
+        offspring2.append(parent2[i].copy())
+    for i in range(cross_point, len(parent1)):
+        offspring1.append(parent2[i].copy())
+        offspring2.append(parent1[i].copy())
+    return offspring1, offspring2
 
-
-def crossoverRows(parent1, parent2):
-    crossoverPoint = random.randrange(len(parent1)) or 1
-    child1 = []
-    child2 = []
-    for i in range(crossoverPoint):
-        child1.insert(i, parent1[i].copy())
-        child2.insert(i, parent2[i].copy())
-    for i in range(crossoverPoint, len(parent1)):
-        child1.insert(i, parent2[i].copy())
-        child2.insert(i, parent1[i].copy())
-    return child1, child2
-
-
-def crossover(parent1, parent2):
+# Crossover function that chooses between row and column crossover
+def cross(parent1, parent2):
     if random.choice([False, True]):
-        return crossoverRows(parent1, parent2)
+        return cross_rows(parent1, parent2)
     else:
-        return crossoverCols(parent1, parent2)
+        return cross_cols(parent1, parent2)
 
+# Initialize population with random values
+def initialize_population(pop_size, nonogram_size):
+    return [[[random.choice([False, True]) for _ in range(nonogram_size)] for _ in range(nonogram_size)] for _ in range(pop_size)]
 
-def initPop(popSize, nonogramSize):
-    return [[[random.choice([False, True]) for _ in range(nonogramSize)] for _ in range(nonogramSize)] for _ in range(popSize)]
+# Nonogram solver function
+def solve_nonogram(nonogram_spec, pop_factor, mutation_rate, max_iterations, heuristic_func, restart=False):
+    # Fitness function for individuals
+    def calculate_fitness(individual):
+        return heuristic_func(nonogram_spec, individual)
 
+    # Check if solution is correct
+    def is_solution_correct(individual):
+        return heuristic.rowHeuristic(nonogram_spec, individual) == 0 and\
+            heuristic.colHeuristic(nonogram_spec, individual) == 0
 
-def solver(nonogramSpec, popFactor, mutationRate, maxIterations, h, restart=False):
-    def fitness(individual):
-        return h(nonogramSpec, individual)
-
-    def solnCorrect(individual):
-        return heuristic.rowHeuristic(nonogramSpec, individual) == 0 and\
-            heuristic.colHeuristic(nonogramSpec, individual) == 0
-
+    # Mutate an individual
     def mutate(individual):
-        for _ in range(len(nonogramSpec['rows'])):
+        for _ in range(len(nonogram_spec['rows'])):
             i = random.randrange(len(individual))
             j = random.randrange(len(individual))
             individual[i][j] = not individual[i][j]
 
-    popSize = popFactor * 4  # must be multiple of 4
-    pop = initPop(popSize, len(nonogramSpec['rows']))
-    generation = 1
+    pop_size = pop_factor * 4  # must be multiple of 4
+    population = initialize_population(pop_size, len(nonogram_spec['rows']))
+    generation_count = 1
 
     while True:
-        minFit = 1000000
-        possibleSoln = []
-        # Natural selection tournament; compare each 2 individuals
-        for i in range(0, popSize//2):
-            fit1 = fitness(pop[i])
-            # fitness must = 0 for solution to be correct, so we check that first
-            if fit1 == 0 and solnCorrect(pop[i]):
-                printNonogram(pop[i])
-                return pop[i]
+        min_fitness = 1000000
+        possible_solution = []
+        # Tournament selection: compare pairs of individuals
+        for i in range(0, pop_size//2):
+            fitness1 = calculate_fitness(population[i])
+            if fitness1 == 0 and is_solution_correct(population[i]):
+                display_nonogram(population[i])
+                return population[i]
 
-            fit2 = fitness(pop[i + 1])
-            if fit2 == 0 and solnCorrect(pop[i + 1]):
-                printNonogram(pop[i+1])
-                return pop[i + 1]
-
-            if fit1 < minFit:
-                minFit = fit1
-                possibleSoln = pop[i]
-            elif fit2 < minFit:
-                minFit = fit2
-                possibleSoln = pop[i + 1]
-
-            # Get rid of whichever option is less fit
-            if fit1 < fit2:
-                del pop[i + 1]
-            else:
-                del pop[i]
-
-        generation += 1
-        if generation % 50 == 0:
-            print(generation, minFit)
-            printNonogram(possibleSoln)
-        if generation > maxIterations:
-            if restart:
-                return solver(nonogramSpec, popFactor, mutationRate, maxIterations, h, restart=restart)
-            else:
-                return
-
-        # Reproduction
-        for i in range(0, popSize//2, 2):
-            child1, child2 = crossover(pop[i], pop[i + 1])
-            if random.randrange(mutationRate) == 0:
-                mutate(child1)
-            if random.randrange(mutationRate) == 0:
-                mutate(child2)
-            pop.insert(len(pop), child1)
-            pop.insert(len(pop), child2)
+            fitness2 = calculate_fitness(population[i + 1])
+            if fitness2 == 0 and is_solution_correct
