@@ -1,120 +1,42 @@
-sampleConstraints1 = {}
-sampleConstraints1['rows'] = [[3], [4], [1, 3], [1], [1]]
-sampleConstraints1['cols'] = [[3], [1], [3], [3], [3]]
-sampleSoln1 = [[False, False, True, True, True],
-               [False, True, True, True, True],
-               [True, False, True, True, True],
-               [True, False, False, False, False],
-               [True, False, False, False, False]]
+def get_block_lengths(lst):
+    return [len(list(g)) for k, g in groupby(lst) if k]
 
-sampleConstraints2 = {}
-sampleConstraints2['cols'] = [[1], [2], [3], [
-    1], [1, 5], [1, 5], [1, 2], [6], [4], [1]]
-sampleConstraints2['rows'] = [[6], [3, 3], [
-    2, 2], [2], [3], [4], [2], [2], [2], [2]]
-sampleSoln2 = [[False, False, True, True, True, True, True, True, False, False],
-               [True, True, True, False, False, False, False, True, True, True],
-               [False, True, True, False, False, False, False, True, True, False],
-               [False, False, False, False, False,
-                   False, False, True, True, False],
-               [False, False, False, False, False, False, True, True, True, False],
-               [False, False, False, False, True, True, True, True, False, False],
-               [False, False, False, False, True, True, False, False, False, False],
-               [False, False, False, False, True, True, False, False, False, False],
-               [False, False, False, False, True, True, False, False, False, False],
-               [False, False, False, False, True, True, False, False, False, False]]
+def check_line(line, blocks):
+    filled_blocks = get_block_lengths(line)
+    if len(filled_blocks) != len(blocks):
+        return False
+    return all(fb == b for fb, b in zip(filled_blocks, blocks))
 
-sampleConstraints3 = {}
-sampleConstraints3['cols'] = [[15], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [
-    1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [15]]
-sampleConstraints3['rows'] = [[15], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [
-    1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [15]]
-sampleSoln3 = [[True, True, True, True, True, True, True, True, True, True, True, True, True, True, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, False, False, False, False, False, False, False,
-                   False, False, False, False, False, False, True],
-               [True, True, True, True, True, True, True, True,
-                   True, True, True, True, True, True, True]
-               ]
+def initial_board(constraints):
+    rows = constraints['rows']
+    cols = constraints['cols']
+    n = len(rows)
+    m = len(cols)
+    return [[False]*m for _ in range(n)]
 
-sampleConstraints4 = {}
-sampleConstraints4['cols'] = [[8, 5], [6, 5], [1, 1, 3, 7], [1, 2, 1, 3], [1, 1, 1],
-                              [3, 3, 2], [3, 1, 1], [3, 1, 7], [
-                                  3, 2, 4, 1], [6, 6],
-                              [8, 6], [4, 5, 4], [4, 5, 4], [4, 1, 7], [8],
-                              [2, 1, 1, 6], [3, 1, 1], [4, 1, 1, 1, 2], [1, 1, 3, 2, 2], [9, 6]]
-sampleConstraints4['rows'] = [[1, 2, 3], [1, 5, 2, 3], [1, 4, 4, 2], [3, 2, 4, 1, 1], [2, 1, 4, 1],
-                              [4, 1, 2, 1, 3], [2, 2, 4, 1], [
-                                  4, 5, 3], [4, 4, 1], [1, 6, 1, 1],
-                              [1, 3, 4, 2], [3, 2, 2], [
-                                  3, 1, 1, 3, 3], [4, 9], [3, 10, 1],
-                              [3, 9, 2], [2, 1, 5, 3, 2], [4, 1, 2, 2, 1], [2, 1, 5], [3]]
+def check_solution(board, constraints):
+    rows = constraints['rows']
+    cols = constraints['cols']
+    for i, row in enumerate(board):
+        if not check_line(row, rows[i]):
+            return False
+    for j, col in enumerate(zip(*board)):
+        if not check_line(col, cols[j]):
+            return False
+    return True
 
-checkerboard10 = {}
-checkerboard10['rows'] = [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]
-checkerboard10['cols'] = [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]
-
-
-checkerboard20 = {}
-checkerboard20['rows'] = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
-
-checkerboard20['cols'] = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+def solve_puzzle(constraints):
+    board = initial_board(constraints)
+    stack = [(board, 0, 0)]
+    while stack:
+        board, i, j = stack.pop()
+        if i == len(board):
+            if check_solution(board, constraints):
+                return board
+        else:
+            for val in [True, False]:
+                new_board = [row.copy() for row in board]
+                new_board[i][j] = val
+                new_i, new_j = (i, j+1) if j+1 < len(board[0]) else (i+1, 0)
+                stack.append((new_board, new_i, new_j))
+    return None
