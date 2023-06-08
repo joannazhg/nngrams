@@ -8,7 +8,7 @@ This program contains an implementation of a Nonogram solver using depth-limited
 git clone https://github.com/joannazhg/puzzleAutomation
 
 # navigate to the project directory
-cd NonogramSolver
+cd puzzleAutomation
 
 # if necessary, install requirements
 pip install -r requirements.txt
