@@ -101,3 +101,5 @@ def nonogramSolver(nonogramSpecification, maxMaxDepth):
         if solution:
             return solution
         max
+        
+#
