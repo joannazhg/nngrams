@@ -5,7 +5,7 @@ This program contains an implementation of a Nonogram solver using depth-limited
 # Installation 
 
 # clone the repository
-git clone https://github.com/yourusername/NonogramSolver.git
+git clone https://github.com/joannazhg/puzzleAutomation
 
 # navigate to the project directory
 cd NonogramSolver
