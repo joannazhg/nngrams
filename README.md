@@ -5,10 +5,10 @@ This program contains an implementation of a Nonogram solver using depth-limited
 # Installation 
 
 # clone the repository
-git clone https://github.com/joannazhg/puzzleAutomation
+git clone https://github.com/joannazhg/nngrams
 
 # navigate to the project directory
-cd puzzleAutomation
+cd nngrams
 
 # if necessary, install requirements
 pip install -r requirements.txt
